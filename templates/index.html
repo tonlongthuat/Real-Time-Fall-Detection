@@ -5,368 +5,99 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Fall Detection</title>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <link
-      rel="stylesheet"
-      href="https://fonts.googleapis.com/css2?family=Crimson+Pro"
-    />
-    <script
-      src="https://kit.fontawesome.com/3ccb56eddc.js"
-      crossorigin="anonymous"
-    ></script>
     <style>
       body {
-        width: 100%;
         background-color: #cdf3f1;
-      }
-      #video-container1,
-      #video-container2 {
-        background-color: inherit;
-        display: flex;
-        justify-content: center;
-        gap: 20px;
-        margin-top: 5%;
-        flex-wrap: wrap;
-      }
-      .Cam {
-        width: 500px;
-        height: 300px;
+        font-family: Arial, sans-serif;
+        text-align: center;
       }
       .image-container {
         position: relative;
         display: inline-block;
         border: 3px solid #000000;
+        margin-top: 20px;
       }
-      .overlay-button {
-        position: absolute;
-        top: 5%;
-        right: 4%;
-        color: black;
-        font-weight: bold;
-        border: none;
-        font-size: 20px;
-        border-radius: 5px;
-        cursor: pointer;
-        background-color: transparent;
-        opacity: inherit;
-        transition: opacity 0.3s ease;
-      }
-      .overlay-button:hover {
-        opacity: 1;
+      .Cam {
+        width: 800px; /* Increased width */
+        height: 600px; /* Increased height */
       }
       .dropdown {
-        display: none;
-        position: absolute;
-        color: white;
-        z-index: 1;
-        padding: 10px;
-        top: 0.7%;
-        left: 76%;
-        width: 100px;
-        opacity: inherit;
-      }
-      .show {
-        display: block;
-      }
-      .dropdown-item {
-        color: black;
-        cursor: pointer;
-      }
-      .dropdown-item:hover {
-        background-color: #f1f1f1;
-      }
-      #icon_cam {
-        position: absolute;
-        top: 10px;
-        left: 10px;
-        color: black;
-        font-size: 24px;
-        z-index: 10;
-      }
-      .button_cam {
-        display: flex;
-        margin: 20px 50px 0px 175px;
-      }
-
-      @media (max-width: 768px) {
-        #video-container1,
-        #video-container2 {
-          flex-direction: column;
-          gap: 20px;
-        }
-
-        #upload-form-2,
-        #upload-form-3,
-        #upload-form-4 {
-          display: block;
-        }
+        margin-top: 10px;
       }
     </style>
   </head>
   <body>
-    <h1>Fall Detection</h1>
-
-    <h2>Video Preview with Fall Detection</h2>
-
-    <div id="video-container1">
-      <form id="upload-form-1" enctype="multipart/form-data">
-        <div class="image-container">
-          <i id="icon_cam" class="fa-solid fa-camera"></i>
-          <img
-            id="video-preview-1"
-            class="Cam"
-            src="https://th.bing.com/th?q=No+Camera+Icon+White+PNG&w=120&h=120&c=1&rs=1&qlt=90&cb=1&dpr=1.5&pid=InlineBlock&mkt=en-WW&cc=VN&setlang=en&adlt=strict&t=1&mw=247"
-            alt="Camera 1"
-          />
-          <button
-            type="button"
-            class="overlay-button"
-            data-index="1"
-            onclick="toggleDropdown(1)"
-          >
-            &#x22EE;
-          </button>
-
-          <div id="dropdownMenu1" class="dropdown">
-            <label class="dropdown-item" for="file-input-1">
-              Choose File
-              <input
-                id="file-input-1"
-                style="display: none"
-                type="file"
-                name="file"
-                accept="video/*"
-                onchange="previewVideo(event, 1)"
-                required
-              />
-            </label>
-            <div class="dropdown-item" onclick="chooseIpCam(1)">
-              Choose IP Cam
-            </div>
-            <div class="dropdown-item" onclick="closeCamera(1)">Close Cam</div>
-          </div>
-        </div>
-      </form>
-
-      <form id="upload-form-2" enctype="multipart/form-data">
-        <div class="image-container">
-          <i id="icon_cam" class="fa-solid fa-camera"></i>
-          <img
-            id="video-preview-2"
-            class="Cam"
-            src="https://th.bing.com/th?q=No+Camera+Icon+White+PNG&w=120&h=120&c=1&rs=1&qlt=90&cb=1&dpr=1.5&pid=InlineBlock&mkt=en-WW&cc=VN&setlang=en&adlt=strict&t=1&mw=247"
-            alt="Camera 2"
-          />
-          <button
-            type="button"
-            class="overlay-button"
-            data-index="2"
-            onclick="toggleDropdown(2)"
-          >
-            &#x22EE;
-          </button>
-
-          <div id="dropdownMenu2" class="dropdown">
-            <label class="dropdown-item" for="file-input-2">
-              Choose File
-              <input
-                id="file-input-2"
-                style="display: none"
-                type="file"
-                name="file"
-                accept="video/*"
-                onchange="previewVideo(event, 2)"
-                required
-              />
-            </label>
-            <div class="dropdown-item" onclick="chooseIpCam(2)">
-              Choose IP Cam
-            </div>
-            <div class="dropdown-item" onclick="closeCamera(2)">Close Cam</div>
-          </div>
-        </div>
-      </form>
+    <h1>Fall Detection Demo</h1>
+    <div class="image-container">
+      <img
+        id="video-preview"
+        class="Cam"
+        src="https://th.bing.com/th?q=No+Camera+Icon+White+PNG&w=120&h=120&c=1&rs=1&qlt=90&cb=1&dpr=1.5&pid=InlineBlock&mkt=en-WW&cc=VN&setlang=en&adlt=strict&t=1&mw=247"
+        alt="Camera Preview"
+      />
     </div>
-
-    <div id="video-container2">
-      <form id="upload-form-3" enctype="multipart/form-data">
-        <div class="image-container">
-          <i id="icon_cam" class="fa-solid fa-camera"></i>
-          <img
-            id="video-preview-3"
-            class="Cam"
-            src="https://th.bing.com/th?q=No+Camera+Icon+White+PNG&w=120&h=120&c=1&rs=1&qlt=90&cb=1&dpr=1.5&pid=InlineBlock&mkt=en-WW&cc=VN&setlang=en&adlt=strict&t=1&mw=247"
-            alt="Camera 3"
-          />
-          <button
-            type="button"
-            class="overlay-button"
-            data-index="3"
-            onclick="toggleDropdown(3)"
-          >
-            &#x22EE;
-          </button>
-
-          <div id="dropdownMenu3" class="dropdown">
-            <label class="dropdown-item" for="file-input-3">
-              Choose File
-              <input
-                id="file-input-3"
-                style="display: none"
-                type="file"
-                name="file"
-                accept="video/*"
-                onchange="previewVideo(event, 3)"
-                required
-              />
-            </label>
-
-            <div class="dropdown-item" onclick="chooseIpCam(3)">
-              Choose IP Cam
-            </div>
-            <div class="dropdown-item" onclick="closeCamera(3)">Close Cam</div>
-          </div>
-        </div>
-      </form>
-
-      <form id="upload-form-4" enctype="multipart/form-data">
-        <div class="image-container">
-          <i id="icon_cam" class="fa-solid fa-camera"></i>
-          <img
-            id="video-preview-4"
-            class="Cam"
-            src="https://th.bing.com/th?q=No+Camera+Icon+White+PNG&w=120&h=120&c=1&rs=1&qlt=90&cb=1&dpr=1.5&pid=InlineBlock&mkt=en-WW&cc=VN&setlang=en&adlt=strict&t=1&mw=247"
-            alt="Camera 4"
-          />
-          <button
-            type="button"
-            class="overlay-button"
-            data-index="4"
-            onclick="toggleDropdown(4)"
-          >
-            &#x22EE;
-          </button>
-
-          <div id="dropdownMenu4" class="dropdown">
-            <label class="dropdown-item" for="file-input-4">
-              Choose File
-              <input
-                id="file-input-4"
-                style="display: none"
-                type="file"
-                name="file"
-                accept="video/*"
-                onchange="previewVideo(event, 4)"
-                required
-              />
-            </label>
-
-            <div class="dropdown-item" onclick="chooseIpCam(4)">
-              Choose IP Cam
-            </div>
-            <div class="dropdown-item" onclick="closeCamera(4)">Close Cam</div>
-          </div>
-        </div>
-      </form>
+    <div class="dropdown">
+      <label for="file-input">Choose File:</label>
+      <input
+        id="file-input"
+        type="file"
+        name="file"
+        accept="video/*"
+        onchange="uploadVideo(event)"
+      />
+      <button onclick="chooseIpCam()">Choose IP Cam</button>
+      <button onclick="closeCamera()">Close Cam</button>
     </div>
-
     <script>
-      function toggleDropdown(index) {
-        const dropdown = document.getElementById(`dropdownMenu${index}`);
-        const button = document.querySelector(
-          `.overlay-button[data-index='${index}']`
-        );
-
-        dropdown.classList.toggle("show");
-
-        if (dropdown.classList.contains("show")) {
-          button.style.display = "none";
-        } else {
-          button.style.display = "block";
-        }
-      }
-      window.onclick = function (event) {
-        const dropdowns = document.getElementsByClassName("dropdown");
-        for (let i = 0; i < dropdowns.length; i++) {
-          const button = document.querySelector(
-            `.overlay-button[data-index='${i + 1}']`
-          );
-          if (!event.target.matches(".overlay-button")) {
-            dropdowns[i].classList.remove("show");
-            button.style.display = "block";
-          }
-        }
-      };
-      function closeCamera(index) {
-        document.getElementById(`video-preview-${index}`).src =
-          "https://th.bing.com/th?q=No+Camera+Icon+White+PNG&w=120&h=120&c=1&rs=1&qlt=90&cb=1&dpr=1.5&pid=InlineBlock&mkt=en-WW&cc=VN&setlang=en&adlt=strict&t=1&mw=247"; // Đặt lại hình ảnh về mặc định
-        const fileInput = document.getElementById(`file-input-${index}`);
-        fileInput.value = "";
-      }
-      function previewVideo(event, index) {
-        const file = event.target.files[0];
-        const fileInput = document.getElementById(`file-input-${index}`);
-        
+      function uploadVideo(event) {
+        const file = event.target.files[0]
         if (file) {
-            // Vô hiệu hóa file input để ngăn người dùng chọn file mới
-            fileInput.disabled = true; 
+          const formData = new FormData()
+          formData.append("file", file)
 
-            const url = `/video_feed/${index}`;
-
-            const formData = new FormData();
-            formData.append('file', file); 
-            formData.append('camera_id', index); 
-
-            $.ajax({
-                url: '/upload', 
-                type: 'POST',
-                data: formData,
-                contentType: false,
-                processData: false,
-                success: function(response) {
-                    alert(response.message); 
-                    // Reset file input sau khi upload thành công
-                     
-                    document.getElementById(`video-preview-${index}`).src = url; 
-                    document.getElementById(`video-preview-${index}`).load(); 
-                    fileInput.value = ""; 
-                    fileInput.disabled = false; // Bật lại file input
-
-                },
-                error: function(xhr) {
-                    alert('Error: ' + xhr.responseJSON.error); 
-                    console.error('Error:', xhr.responseJSON.error); 
-                    fileInput.disabled = false; // Bật lại file input ngay cả khi có lỗi
-                }
-            });
-        } else {
-            document.getElementById(`video-preview-${index}`).src = "https://th.bing.com/th?q=No+Camera+Icon+White+PNG&w=120&h=120&c=1&rs=1&qlt=90&cb=1&dpr=1.5&pid=InlineBlock&mkt=en-WW&cc=VN&setlang=en&adlt=strict&t=1&mw=247";
+          $.ajax({
+            url: "/upload", // Ensure this matches the Flask route
+            type: "POST",
+            data: formData,
+            contentType: false,
+            processData: false,
+            success: function (response) {
+              alert(response.message)
+              document.getElementById("video-preview").src = "/video_feed"
+            },
+            error: function (xhr) {
+              alert("Error: " + xhr.responseJSON.error)
+              console.error("Error:", xhr.responseJSON.error)
+            },
+          })
         }
-    }
+      }
 
-
-
-
-      function chooseIpCam(index) {
-        const ip = prompt("Please enter the IP address of the camera:");
+      function chooseIpCam() {
+        const ip = prompt("Please enter the IP address of the camera:")
         if (ip) {
-            console.log(`Camera ${index} IP Address: ${ip}`); // Xuất địa chỉ IP ra console
-            document.getElementById(`video-preview-${index}`).src = `/video_feed/${index}`;
-            fetch("/set_ip", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({ camera_id: index, ip: ip }),
-            })
+          fetch("/set_ip", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ ip: ip }),
+          })
             .then((response) => response.json())
             .then((data) => {
-                alert(data.message);
+              alert(data.message)
+              document.getElementById("video-preview").src = "/video_feed"
             })
             .catch((error) => {
-                console.error("Error:", error);
-            });
+              console.error("Error:", error)
+            })
         }
-    }
+      }
+
+      function closeCamera() {
+        document.getElementById("video-preview").src =
+          "https://th.bing.com/th?q=No+Camera+Icon+White+PNG&w=120&h=120&c=1&rs=1&qlt=90&cb=1&dpr=1.5&pid=InlineBlock&mkt=en-WW&cc=VN&setlang=en&adlt=strict&t=1&mw=247"
+      }
     </script>
   </body>
 </html>

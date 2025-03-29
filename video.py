@@ -1,67 +1,75 @@
 import cv2
 import time
 from threading import Thread
-from ultralytics import YOLO
+import mediapipe as mp
+from fall_detector import FallDetector
 
 class VideoProcessor:
-    def __init__(self, model_path, frame_queue, confidence_threshold=0.5):
-        self.model = YOLO(model_path)
+    def __init__(self, frame_queue, confidence_threshold=0.5):
+        self.pose = mp.solutions.pose.Pose(min_detection_confidence=confidence_threshold, min_tracking_confidence=confidence_threshold)
         self.frame_queue = frame_queue
-        self.confidence_threshold = confidence_threshold
         self.should_stop = False
         self.processing_thread = None
-        self.total_fall_time = 0
-        self.fall_detected_duration = 2  # seconds
-        self.monitoring_duration = 10  # seconds
-        self.start_time = time.time()
-        self.last_detection_time = None
+        self.fall_detector = FallDetector()  # Initialize FallDetector
+        self.person_id_counter = 0  # Counter for assigning person IDs
+        # Add variables for FPS calculation
+        self.prev_frame_time = 0
+        self.current_frame_time = 0
+        self.fps = 0
 
     def process_frame(self, frame):
-        results = self.model(frame)
+        # Calculate FPS
+        self.current_frame_time = time.time()
+        if self.prev_frame_time > 0:
+            self.fps = 1 / (self.current_frame_time - self.prev_frame_time)
+        self.prev_frame_time = self.current_frame_time
+        
+        # Display FPS on the right corner
+        cv2.putText(frame, f"FPS: {int(self.fps)}", (frame.shape[1] - 150, 30), 
+                   cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2)
+
+        rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+        results = self.pose.process(rgb_frame)
         falling_detected = False
 
-        for result in results:
-            for box in result.boxes:
-                if box.conf < self.confidence_threshold:
-                    continue  # Skip detections with low confidence
+        if results.pose_landmarks:
+            # Draw pose landmarks on the frame
+            mp.solutions.drawing_utils.draw_landmarks(
+                frame, 
+                results.pose_landmarks, 
+                mp.solutions.pose.POSE_CONNECTIONS,
+                mp.solutions.drawing_styles.get_default_pose_landmarks_style()
+            )
 
-                class_id = box.cls
-                class_name = self.model.names[int(class_id)]
-                x1, y1, x2, y2 = map(int, box.xyxy[0])  # Get bounding box coordinates
+            # Process pose landmarks for fall detection
+            landmarks = results.pose_landmarks.landmark
+            pose_result = self.fall_detector.determine_pose(landmarks)
+            pose_label = pose_result[0]  # Get the pose label from the tuple
+            person_id = self.person_id_counter
+            self.person_id_counter += 1
 
-                # Draw bounding box
-                cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 255, 0), 2)
-                # Put class label text
-                cv2.putText(frame, class_name, (x1, y1 - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 2)
+            # Display posture on the frame
+            cv2.putText(frame, f"Posture: {pose_label}", (10, 70), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2)
+            
+            # Display angles for debugging
+            if len(pose_result) > 1 and isinstance(pose_result[1], dict):
+                pose_data = pose_result[1]
+                if 'spine_angle' in pose_data:
+                    cv2.putText(frame, f"Spine Angle: {pose_data['spine_angle']:.1f}°", 
+                                (10, 100), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 2)
 
-                if class_name == 'fall':
-                    falling_detected = True
-                    if self.last_detection_time is None:
-                        self.last_detection_time = time.time()
-                    else:
-                        self.total_fall_time += time.time() - self.last_detection_time
-                        self.last_detection_time = time.time()
-                    break
-
-        if not falling_detected:
-            self.last_detection_time = None
-
-        # Check if total fall time exceeds the threshold within the monitoring duration
-        if self.total_fall_time >= self.fall_detected_duration:
-            cv2.putText(frame, "FALL DETECTED", (50, 50), 
-                        cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 255), 2)
-
-        # Reset total fall time and start time if monitoring duration has passed
-        if time.time() - self.start_time >= self.monitoring_duration:
-            self.total_fall_time = 0
-            self.start_time = time.time()
+            if self.fall_detector.detect_fall(person_id, pose_result):
+                falling_detected = True
+                # Display "FALL DETECTED" text on the frame with higher visibility
+                cv2.putText(frame, "FALL DETECTED", (frame.shape[1]//2 - 150, 50), 
+                            cv2.FONT_HERSHEY_SIMPLEX, 1.5, (0, 0, 255), 3)
 
         return frame
 
     def process_video(self, video_path, camera_id):
         self.should_stop = False
         cap = cv2.VideoCapture(video_path)
-        
+
         while cap.isOpened() and not self.should_stop:
             success, frame = cap.read()
             if not success:
@@ -72,7 +80,6 @@ class VideoProcessor:
             if self.frame_queue.full():
                 self.frame_queue.get()
             self.frame_queue.put(processed_frame)
-            time.sleep(0.01)
 
         cap.release()
 
