@@ -4,7 +4,7 @@ os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'  # Suppress TensorFlow warnings
 from flask import Flask, render_template, Response, request, jsonify
 import queue
 from esp32cam_streamer import ESP32CamStreamer
-from video import VideoProcessor, FileVideoStreamer
+from video import VideoProcessor, FileVideoStreamer, VideoStreamer
 
 app = Flask(__name__, template_folder='templates')
 

@@ -5,7 +5,7 @@ import mediapipe as mp
 from fall_detector import FallDetector
 
 class VideoProcessor:
-    def __init__(self, frame_queue, confidence_threshold=0.5):
+    def __init__(self, frame_queue, confidence_threshold=0.7):  # Increased from 0.5 to 0.7
         self.pose = mp.solutions.pose.Pose(min_detection_confidence=confidence_threshold, min_tracking_confidence=confidence_threshold)
         self.frame_queue = frame_queue
         self.should_stop = False
@@ -24,9 +24,9 @@ class VideoProcessor:
             self.fps = 1 / (self.current_frame_time - self.prev_frame_time)
         self.prev_frame_time = self.current_frame_time
         
-        # Display FPS on the right corner
-        cv2.putText(frame, f"FPS: {int(self.fps)}", (frame.shape[1] - 150, 30), 
-                   cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2)
+        # Smaller text for FPS
+        cv2.putText(frame, f"FPS: {int(self.fps)}", (frame.shape[1] - 120, 25), 
+                   cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 255), 1)
 
         rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         results = self.pose.process(rgb_frame)
@@ -48,21 +48,21 @@ class VideoProcessor:
             person_id = self.person_id_counter
             self.person_id_counter += 1
 
-            # Display posture on the frame
-            cv2.putText(frame, f"Posture: {pose_label}", (10, 70), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2)
+            # Display posture on the frame (smaller text)
+            cv2.putText(frame, f"Posture: {pose_label}", (10, 50), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 255), 1)
             
-            # Display angles for debugging
+            # Display angles for debugging (smaller text)
             if len(pose_result) > 1 and isinstance(pose_result[1], dict):
                 pose_data = pose_result[1]
                 if 'spine_angle' in pose_data:
                     cv2.putText(frame, f"Spine Angle: {pose_data['spine_angle']:.1f}°", 
-                                (10, 100), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 2)
+                                (10, 75), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1)
 
             if self.fall_detector.detect_fall(person_id, pose_result):
                 falling_detected = True
-                # Display "FALL DETECTED" text on the frame with higher visibility
-                cv2.putText(frame, "FALL DETECTED", (frame.shape[1]//2 - 150, 50), 
-                            cv2.FONT_HERSHEY_SIMPLEX, 1.5, (0, 0, 255), 3)
+                # Display "FALL DETECTED" text (still visible but smaller)
+                cv2.putText(frame, "FALL DETECTED", (frame.shape[1]//2 - 100, 50), 
+                            cv2.FONT_HERSHEY_SIMPLEX, 1.0, (0, 0, 255), 2)
 
         return frame
 
